@@ -1,6 +1,9 @@
 import chromadb
 from chromadb.config import Settings
 from openai import OpenAI
+from google import genai
+from google import generativeai as genaiembedding
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 
 class FinancialSituationMemory:
@@ -9,17 +12,25 @@ class FinancialSituationMemory:
             self.embedding = "nomic-embed-text"
         else:
             self.embedding = "text-embedding-3-small"
-        self.client = OpenAI(base_url=config["backend_url"])
+        if config["llm_provider"].lower() == "openai":
+            self.client = OpenAI(base_url=config["backend_url"])
+        elif config["llm_provider"] == "google":
+            self.client = genai.Client()
+        self.config = config
         self.chroma_client = chromadb.Client(Settings(allow_reset=True))
         self.situation_collection = self.chroma_client.create_collection(name=name)
 
     def get_embedding(self, text):
         """Get OpenAI embedding for a text"""
-        
-        response = self.client.embeddings.create(
-            model=self.embedding, input=text
-        )
-        return response.data[0].embedding
+        if self.config["llm_provider"].lower() == "openai":
+            response = self.client.embeddings.create(
+                model=self.embedding, input=text
+            )
+            embedding = response.data[0].embedding
+        elif self.config["llm_provider"].lower() == "google":
+            response = genaiembedding.embed_content(model="models/text-embedding-004", content=text)
+            embedding = response['embedding']
+        return embedding
 
     def add_situations(self, situations_and_advice):
         """Add financial situations and their corresponding advice. Parameter is a list of tuples (situation, rec)"""

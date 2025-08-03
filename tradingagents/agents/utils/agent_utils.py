@@ -417,3 +417,24 @@ class Toolkit:
         )
 
         return openai_fundamentals_results
+
+    @staticmethod
+    @tool
+    def get_fundamentals_genai(
+        ticker: Annotated[str, "the company's ticker"],
+        curr_date: Annotated[str, "Current date in yyyy-mm-dd format"],
+    ):
+        """
+        Retrieve the latest fundamental information about a given stock on a given date by using OpenAI's news API.
+        Args:
+            ticker (str): Ticker of a company. e.g. AAPL, TSM
+            curr_date (str): Current date in yyyy-mm-dd format
+        Returns:
+            str: A formatted string containing the latest fundamental information about the company on the given date.
+        """
+
+        gemini_fundamentals_results = interface.get_fundamentals_genai(
+            ticker, curr_date
+        )
+
+        return gemini_fundamentals_results
